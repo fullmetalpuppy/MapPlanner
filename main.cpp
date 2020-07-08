@@ -5,7 +5,7 @@
 #include <sstream>
 
 //Enumerated class to define all possible states of a cell
-enum class State {kEmpty, kObstacle};
+enum class State {kEmpty, kObstacle, kClosed};
 
 //Function to convert cells to ascii symbol
 std::string CellString(State cellState){
