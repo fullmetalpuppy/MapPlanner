@@ -86,7 +86,7 @@ bool CompareNodes (std::vector<int> nodeOne, std::vector<int> nodeTwo){
     }
 }
 
-//Sorts the open nodes vector
+//Sorts the open nodes vector based on smallest "f" value in CompareNodes
 void CellSort(std::vector<std::vector<int>> *openNodes){
     std::sort(openNodes->begin(), openNodes->end(), CompareNodes);
 }
