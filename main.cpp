@@ -3,15 +3,17 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 //Enumerated class to define all possible states of a cell
-enum class State {kEmpty, kObstacle, kClosed};
+enum class State {kEmpty, kObstacle, kClosed, kPath};
 
 //Function to convert cells to ascii symbol
 std::string CellString(State cellState){
 
     std::string theCellState;
     if(cellState == State::kObstacle){ theCellState = "⛰️ ";}
+    else if(cellState == State::kPath){ theCellState = "🚗   ";}
     else {theCellState = "0 ";}
 
     return theCellState;
@@ -60,16 +62,66 @@ void PrintBoard(std::vector<std::vector<State>> printMe){
     }
 }
 
+//Function for Manhattan Distance between start and goal.
+int Heuristic(int x, int y, int xi, int yi){
+    return abs(xi - x), abs(yi - y);
+}
+
+
+void AddToOpen(int x, int y, int g, int h, std::vector<std::vector<int>> &openNodes,
+                                           std::vector<std::vector<State>> &gridState){
+
+    std::vector<int> node = {x, y, g, h};
+    openNodes.push_back(node);
+    gridState[x][y] = State::kClosed;
+
+}
+
+bool CompareNodes (std::vector<int> nodeOne, std::vector<int> nodeTwo){
+    if ((nodeOne[2] + nodeOne[3]) > (nodeTwo[2] + nodeTwo[3])){
+        return true;
+    }else{
+        return false;
+    }
+}
+void CellSort(std::vector<std::vector<int>> *openNodes){
+    std::sort(openNodes->begin(), openNodes->end(), CompareNodes);
+}
+
+bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
+    if(x >= 0 && x <= boardGrid[x].size()){
+        if (y >= 0 && y <= boardGrid[y].size()){
+            if (boardGrid[x][y] == State::kEmpty){
+                return true;
+            }
+        }
+    }else{ return false;}
+
+    return true;
+}
 //Function for set up of basic search
 std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGrid, int start[2], int goal[2]){
 
+    int x = start[0];
+    int y = start[1];
+    int g = 0;
+    int h = Heuristic(x, y, goal[1], goal[2]);
+    std::vector<std::vector<int>> openNodes {};
+    AddToOpen(x, y, g ,h, openNodes, boardGrid);
+
+    while(!openNodes.empty()){
+        CellSort(&openNodes);
+        std::vector<int> currentNode = openNodes.back();
+        int currentX = currentNode[0];
+        int currentY = currentNode[1];
+        currentNode.pop_back();
+        boardGrid[currentX][currentY] = State::kPath;
+        if (currentX == goal[0] && currentY == goal[1]){
+            return boardGrid;
+        }
+    }
     std::cout << "No Path Found!\n";
     return std::vector<std::vector<State>> {};
-}
-
-//Function for Manhattan Distance between start and goal.
-int Heuristic(int x, int y, int xi, int yi){
-    return abs(xi - x), abs(yi -y);
 }
 
 
