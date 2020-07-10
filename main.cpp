@@ -77,6 +77,7 @@ void AddToOpen(int x, int y, int g, int h, std::vector<std::vector<int>> &openNo
 
 }
 
+// Calculates the "F" value for each cell. (f=g+h)
 bool CompareNodes (std::vector<int> nodeOne, std::vector<int> nodeTwo){
     if ((nodeOne[2] + nodeOne[3]) > (nodeTwo[2] + nodeTwo[3])){
         return true;
@@ -84,10 +85,13 @@ bool CompareNodes (std::vector<int> nodeOne, std::vector<int> nodeTwo){
         return false;
     }
 }
+
+//Sorts the open nodes vector
 void CellSort(std::vector<std::vector<int>> *openNodes){
     std::sort(openNodes->begin(), openNodes->end(), CompareNodes);
 }
 
+//Checking if the cell is valid, not kClosed or kObstacle
 bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
     if(x >= 0 && x <= boardGrid[x].size()){
         if (y >= 0 && y <= boardGrid[y].size()){
@@ -99,7 +103,8 @@ bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
 
     return true;
 }
-//Function for set up of basic search
+
+//Function for set up of basic A* search
 std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGrid, int start[2], int goal[2]){
 
     int x = start[0];
@@ -123,7 +128,6 @@ std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGri
     std::cout << "No Path Found!\n";
     return std::vector<std::vector<State>> {};
 }
-
 
 int main(){
     int start[] = {0,0};
