@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <array>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -64,14 +65,14 @@ void PrintBoard(std::vector<std::vector<State>> printMe){
 
 //Function for Manhattan Distance between start and goal.
 int Heuristic(int x, int y, int xi, int yi){
-    return abs(xi - x), abs(yi - y);
+    return (abs(xi - x) + abs(yi - y));
 }
 
 
 void AddToOpen(int x, int y, int g, int h, std::vector<std::vector<int>> &openNodes,
                                            std::vector<std::vector<State>> &gridState){
 
-    std::vector<int> node = {x, y, g, h};
+    std::vector<int> node {x, y, g, h};
     openNodes.push_back(node);
     gridState[x][y] = State::kClosed;
 
@@ -91,10 +92,10 @@ void CellSort(std::vector<std::vector<int>> *openNodes){
     std::sort(openNodes->begin(), openNodes->end(), CompareNodes);
 }
 
-//Checking if the cell is valid, not kClosed or kObstacle
+//Checking if the cell is valid, exists ont he board and no kObstacle
 bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
-    if(x >= 0 && x <= boardGrid[x].size()){
-        if (y >= 0 && y <= boardGrid[y].size()){
+    if(x >= 0 && x <= boardGrid.size()){
+        if (y >= 0 && y <= boardGrid[0].size()){
             if (boardGrid[x][y] == State::kEmpty){
                 return true;
             }
@@ -104,26 +105,53 @@ bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
     return true;
 }
 
+void ExpandNeighbors(const std::vector<int> &current, int goal[2],
+                     std::vector<std::vector<int>> &openNodes, std::vector<std::vector<State>> &boardGrid) {
+
+    //Check neighbor             right   down    up      left
+    const int directional[4][2] {{0,1}, {1,0}, {-1,0}, {0,-1}};
+    int arrSize = sizeof(directional)/sizeof(directional[0]);
+
+    for(int i = 0; i < 4; i++ ){
+
+        int neighborX = current[0] + directional[i][0];
+        int neighborY = current[1] + directional[i][1];
+        bool isValid = CheckValidCell(neighborX, neighborY, boardGrid);
+
+        if(isValid){
+            int g = current[2] + 1;
+            int h = Heuristic(neighborX, neighborY, goal[0], goal[1]);
+            //SEG FAULT HAPPENS HERE, CURRENT[1] ISN't UPDATING ITS VALUE.
+            //THE SEARCH FUNCTION BELOWS CALLS THIS FUNCTION IN THE WHILE LOOP
+            //AND LOOKS TO BE CHANGING CURRENT[0] BUT NOT CURRENT[1]
+            AddToOpen(neighborX, neighborY, g, h, openNodes, boardGrid);
+
+        }
+    }
+}
+
 //Function for set up of basic A* search
 std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGrid, int start[2], int goal[2]){
 
-    int x = start[0];
-    int y = start[1];
     int g = 0;
-    int h = Heuristic(x, y, goal[1], goal[2]);
+    int h = Heuristic(start[0], start[1], goal[0], goal[1]);
     std::vector<std::vector<int>> openNodes {};
-    AddToOpen(x, y, g ,h, openNodes, boardGrid);
+
+    AddToOpen(start[0], start[1], g ,h, openNodes, boardGrid);
 
     while(!openNodes.empty()){
         CellSort(&openNodes);
+
         std::vector<int> currentNode = openNodes.back();
-        int currentX = currentNode[0];
-        int currentY = currentNode[1];
         currentNode.pop_back();
-        boardGrid[currentX][currentY] = State::kPath;
-        if (currentX == goal[0] && currentY == goal[1]){
+
+        boardGrid[currentNode[0]][currentNode[1]] = State::kPath;
+
+        if (currentNode[0] == goal[0] && currentNode[1] == goal[1]){
             return boardGrid;
         }
+
+        ExpandNeighbors(currentNode, goal, openNodes, boardGrid);
     }
     std::cout << "No Path Found!\n";
     return std::vector<std::vector<State>> {};
