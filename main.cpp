@@ -80,29 +80,22 @@ void AddToOpen(int x, int y, int g, int h, std::vector<std::vector<int>> &openNo
 
 // Calculates the "F" value for each cell. (f=g+h)
 bool CompareNodes (std::vector<int> nodeOne, std::vector<int> nodeTwo){
-    if ((nodeOne[2] + nodeOne[3]) > (nodeTwo[2] + nodeTwo[3])){
-        return true;
-    }else{
-        return false;
-    }
+        return ((nodeOne[2] + nodeOne[3]) > (nodeTwo[2] + nodeTwo[3]));
 }
 
 //Sorts the open nodes vector based on smallest "f" value in CompareNodes
-void CellSort(std::vector<std::vector<int>> *openNodes){
-    std::sort(openNodes->begin(), openNodes->end(), CompareNodes);
+void CellSort(std::vector<std::vector<int>> *nodes){
+    std::sort(nodes->begin(), nodes->end(), CompareNodes);
 }
 
-//Checking if the cell is valid, exists ont he board and no kObstacle
+//Checking if the cell is valid, exists on the board and no kObstacle
 bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
-    if(x >= 0 && x <= boardGrid.size()){
-        if (y >= 0 && y <= boardGrid[0].size()){
-            if (boardGrid[x][y] == State::kEmpty){
-                return true;
-            }
-        }
-    }else{ return false;}
 
-    return true;
+    if(x >= 0 && x < boardGrid.size()) {
+        if (y >= 0 && y < boardGrid[0].size()) {
+                    return boardGrid[x][y] == State::kEmpty;
+        }
+    }return false;
 }
 
 void ExpandNeighbors(const std::vector<int> &current, int goal[2],
@@ -110,7 +103,6 @@ void ExpandNeighbors(const std::vector<int> &current, int goal[2],
 
     //Check neighbor             right   down    up      left
     const int directional[4][2] {{0,1}, {1,0}, {-1,0}, {0,-1}};
-    int arrSize = sizeof(directional)/sizeof(directional[0]);
 
     for(int i = 0; i < 4; i++ ){
 
@@ -121,11 +113,7 @@ void ExpandNeighbors(const std::vector<int> &current, int goal[2],
         if(isValid){
             int g = current[2] + 1;
             int h = Heuristic(neighborX, neighborY, goal[0], goal[1]);
-            //SEG FAULT HAPPENS HERE, CURRENT[1] ISN't UPDATING ITS VALUE.
-            //THE SEARCH FUNCTION BELOWS CALLS THIS FUNCTION IN THE WHILE LOOP
-            //AND LOOKS TO BE CHANGING CURRENT[0] BUT NOT CURRENT[1]
             AddToOpen(neighborX, neighborY, g, h, openNodes, boardGrid);
-
         }
     }
 }
@@ -141,12 +129,20 @@ std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGri
 
     while(!openNodes.empty()){
         CellSort(&openNodes);
+        PrintBoard(boardGrid);
+        std::cout << "\n";
 
         std::vector<int> currentNode = openNodes.back();
         currentNode.pop_back();
 
         boardGrid[currentNode[0]][currentNode[1]] = State::kPath;
-
+        for(int i =0; i < openNodes.size(); i++) {
+            std::cout << ".";
+            for (int j = 0; j < openNodes[0].size(); j++) {
+                std::cout << openNodes[i][j] << " ";
+            }
+            std::cout<< std::endl;
+        }
         if (currentNode[0] == goal[0] && currentNode[1] == goal[1]){
             return boardGrid;
         }
