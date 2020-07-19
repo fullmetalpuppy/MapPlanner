@@ -14,8 +14,8 @@ std::string CellString(State cellState){
 
     std::string theCellState;
     if(cellState == State::kObstacle){ theCellState = "⛰️ ";}
-    else if(cellState == State::kPath){ theCellState = "🚗   ";}
-    else {theCellState = "0 ";}
+    else if(cellState == State::kPath){ theCellState = "🚗 ";}
+    else {theCellState = "0  ";}
 
     return theCellState;
 }
@@ -65,7 +65,7 @@ void PrintBoard(std::vector<std::vector<State>> printMe){
 
 //Function for Manhattan Distance between start and goal.
 int Heuristic(int x, int y, int xi, int yi){
-    return (abs(xi - x) + abs(yi - y));
+    return abs(xi - x) + abs(yi - y);
 }
 
 
@@ -80,7 +80,7 @@ void AddToOpen(int x, int y, int g, int h, std::vector<std::vector<int>> &openNo
 
 // Calculates the "F" value for each cell. (f=g+h)
 bool CompareNodes (std::vector<int> nodeOne, std::vector<int> nodeTwo){
-        return ((nodeOne[2] + nodeOne[3]) > (nodeTwo[2] + nodeTwo[3]));
+    return (nodeOne[2] + nodeOne[3]) > (nodeTwo[2] + nodeTwo[3]);
 }
 
 //Sorts the open nodes vector based on smallest "f" value in CompareNodes
@@ -90,24 +90,24 @@ void CellSort(std::vector<std::vector<int>> *nodes){
 
 //Checking if the cell is valid, exists on the board and no kObstacle
 bool CheckValidCell(int x, int y, std::vector<std::vector<State>> &boardGrid){
-
-    if(x >= 0 && x < boardGrid.size()) {
-        if (y >= 0 && y < boardGrid[0].size()) {
-                    return boardGrid[x][y] == State::kEmpty;
-        }
+    bool onX = (x >= 0 && x < boardGrid.size());
+    bool onY = (y >= 0 && y < boardGrid[0].size());
+    std::cout << "Node: " << x << "," << y << std:: endl;
+    std::cout << onX << "," << onY << std::endl;
+    if(onX && onY) {
+        return boardGrid[x][y] == State::kEmpty;
     }return false;
 }
 
 void ExpandNeighbors(const std::vector<int> &current, int goal[2],
                      std::vector<std::vector<int>> &openNodes, std::vector<std::vector<State>> &boardGrid) {
 
-    //Check neighbor             right   down    up      left
     const int directional[4][2] {{0,1}, {1,0}, {-1,0}, {0,-1}};
 
     for(int i = 0; i < 4; i++ ){
-
         int neighborX = current[0] + directional[i][0];
         int neighborY = current[1] + directional[i][1];
+
         bool isValid = CheckValidCell(neighborX, neighborY, boardGrid);
 
         if(isValid){
@@ -129,24 +129,15 @@ std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGri
 
     while(!openNodes.empty()){
         CellSort(&openNodes);
-        PrintBoard(boardGrid);
-        std::cout << "\n";
-
-        std::vector<int> currentNode = openNodes.back();
-        currentNode.pop_back();
+        auto currentNode = openNodes.back();
+        openNodes.pop_back();
 
         boardGrid[currentNode[0]][currentNode[1]] = State::kPath;
-        for(int i =0; i < openNodes.size(); i++) {
-            std::cout << ".";
-            for (int j = 0; j < openNodes[0].size(); j++) {
-                std::cout << openNodes[i][j] << " ";
-            }
-            std::cout<< std::endl;
-        }
+
         if (currentNode[0] == goal[0] && currentNode[1] == goal[1]){
             return boardGrid;
         }
-
+        PrintBoard(boardGrid);
         ExpandNeighbors(currentNode, goal, openNodes, boardGrid);
     }
     std::cout << "No Path Found!\n";
@@ -154,8 +145,8 @@ std::vector<std::vector<State>> Search (std::vector<std::vector<State>> boardGri
 }
 
 int main(){
-    int start[] = {0,0};
-    int goal[] = {4,5};
+    int start[2] = {0,0};
+    int goal[2] = {4,5};
     //Read board from board.txt
     auto board = ReadBoard("board.txt");
     //Function to search board here
